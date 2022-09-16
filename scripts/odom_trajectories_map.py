@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from cProfile import label
 import os
 import rospy
 from nav_msgs.msg import Odometry
