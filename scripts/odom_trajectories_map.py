@@ -4,16 +4,33 @@
 import os
 import rospy
 from nav_msgs.msg import Odometry
-from sensor_message_getter import SensorMessageGetter
 import matplotlib.pyplot as plt
 import random
+
+class MessageGetter(object):
+    def __init__(self, topic, topic_type, timeout=1.0):
+        self.topic = topic
+        self.topic_type = topic_type
+        self.timeout = timeout
+    
+    def get_message(self):
+        result = None
+        try:
+            result = rospy.wait_for_message(self.topic, self.topic_type, self.timeout)
+        except rospy.exceptions.ROSException as err:
+            rospy.logerr("%s is not found", self.topic)
+            rospy.logerr(err)
+        else:
+            rospy.loginfo("got %s correctly", self.topic)
+        finally:
+            return result
 
 class OdomTrajectoriesMap(object):
     def __init__(self, topics, points_size, msg_wait=1.0):
         self.msgs = []
         self.topics = topics
         for topic in self.topics:
-            self.msgs.append(SensorMessageGetter(topic, Odometry, msg_wait))
+            self.msgs.append(MessageGetter(topic, Odometry, msg_wait))
         self.points_size = points_size
         self.colorcodes = []
         self.legend_flag = 0
@@ -27,7 +44,7 @@ class OdomTrajectoriesMap(object):
                 self.colorcodes.append(self.get_colorcode())
         get_msgs = []
         for msg in self.msgs:
-            get_msgs.append(msg.get_msg())
+            get_msgs.append(msg.get_message())
         if None in get_msgs:
             rospy.logwarn("get None msgs. I ignore in this time.")
         else:
